@@ -33,50 +33,8 @@ jobs:
       - name: Clone VirtualApp2022 Engine
         run: |
           git clone -b va --depth=1 https://github.com/bbajie/VirtualApp2022.git virtualapp
-          # Remove package attribute from lib manifest (AGP 8 uses namespace in build.gradle)
           sed -i 's/ package="com.lody.virtual"//' virtualapp/lib/src/main/AndroidManifest.xml
-          # Patch lib/build.gradle for AGP 8 compatibility
-          cat > virtualapp/lib/build.gradle << 'GRADLE'
-apply plugin: 'com.android.library'
-
-android {
-    namespace 'com.lody.virtual'
-    compileSdk 28
-
-    defaultConfig {
-        minSdk 21
-    }
-
-    buildTypes {
-        release { minifyEnabled false }
-        debug   { minifyEnabled false }
-    }
-
-    lint {
-        abortOnError false
-        checkReleaseBuilds false
-        warning 'NewApi'
-        warning 'OnClick'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-}
-
-dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    api("me.weishu.exposed:exposed-core:0.8.1") {
-        exclude group: 'me.weishu', module: 'free_reflection'
-        exclude group: 'me.weishu', module: 'epic'
-        exclude group: 'me.weishu.exposed', module: 'exposed-xposedapi'
-    }
-    implementation "me.weishu:free_reflection:3.0.1"
-    implementation "me.weishu:epic:0.11.1"
-    implementation "me.weishu.exposed:exposed-xposedapi:0.4.6"
-}
-GRADLE
+          cp scripts/virtualapp-lib-build.gradle virtualapp/lib/build.gradle
 
       - name: Build Debug APK
         run: gradle assembleDebug --no-daemon --stacktrace
