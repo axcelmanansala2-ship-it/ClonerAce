@@ -3,6 +3,7 @@ package com.appcloner.presentation.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.appcloner.data.model.CloneStatus
 import com.appcloner.data.model.ClonedApp
@@ -23,7 +24,7 @@ class CloneViewModel @Inject constructor(
     private val uninstallCloneUseCase: UninstallCloneUseCase
 ) : ViewModel() {
 
-    val clonedApps: LiveData<List<ClonedApp>> = cloneRepository.getAllClonedApps()
+    val clonedApps: LiveData<List<ClonedApp>> = cloneRepository.getAllClonedApps().asLiveData()
 
     private val _cloneStatus = MutableLiveData<CloneStatus>(CloneStatus.Idle)
     val cloneStatus: LiveData<CloneStatus> = _cloneStatus
@@ -31,13 +32,13 @@ class CloneViewModel @Inject constructor(
     fun cloneApp(packageName: String, cloneName: String) {
         viewModelScope.launch {
             cloneAppUseCase(packageName, cloneName).collectLatest { status ->
-                _cloneStatus.value = status
+                _cloneStatus.postValue(status)
             }
         }
     }
 
-    fun launchClone(clonedPackage: String, userHandle: Int) {
-        launchCloneUseCase.invoke(clonedPackage, userHandle)
+    fun launchClone(originalPackage: String, userHandle: Int) {
+        launchCloneUseCase.invoke(originalPackage, userHandle)
     }
 
     fun uninstallClone(clonedApp: ClonedApp) {

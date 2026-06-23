@@ -9,15 +9,16 @@ import javax.inject.Singleton
 
 /**
  * Thin facade over VirtualApp2022's VirtualCore engine.
- * All cloning is handled inside VirtualCore's isolated virtual space;
- * no APK rewrite or separate package installation is required.
  */
 @Singleton
 class VirtualSpaceManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    /** True once VirtualCore.startup() has succeeded (checked via its public getContext()). */
     val isEngineReady: Boolean
-        get() = try { VirtualCore.get().isStartUp } catch (e: Throwable) { false }
+        get() = try {
+            VirtualCore.get().context != null
+        } catch (e: Throwable) { false }
 
     fun isAppInstalledVirtually(packageName: String): Boolean =
         try { VirtualCore.get().isAppInstalled(packageName) } catch (e: Throwable) { false }
