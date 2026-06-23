@@ -5,6 +5,7 @@ import com.appcloner.data.repository.AppRepository
 import com.appcloner.data.repository.CloneRepository
 import com.appcloner.domain.model.Result
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -14,7 +15,8 @@ class GetInstalledAppsUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<List<AppInfo>> = withContext(Dispatchers.IO) {
         try {
-            val apps = appRepository.getInstalledApps().map { app ->
+            val appList = appRepository.getInstalledApps().first()
+            val apps = appList.map { app ->
                 app.copy(isCloned = cloneRepository.isCloned(app.packageName))
             }
             Result.Success(apps)
