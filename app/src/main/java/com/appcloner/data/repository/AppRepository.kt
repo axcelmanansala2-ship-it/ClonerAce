@@ -25,17 +25,14 @@ class AppRepository @Inject constructor(
                 includeSystemApps || (info.flags and ApplicationInfo.FLAG_SYSTEM) == 0
             }
             .map { info ->
+                val pkgInfo = try { pm.getPackageInfo(info.packageName, 0) } catch (e: Exception) { null }
                 AppInfo(
                     packageName = info.packageName,
                     appName = pm.getApplicationLabel(info).toString(),
-                    versionName = try {
-                        pm.getPackageInfo(info.packageName, 0).versionName ?: "?"
-                    } catch (e: Exception) { "?" },
-                    apkSize = try {
-                        java.io.File(info.sourceDir).length()
-                    } catch (e: Exception) { 0L },
                     icon = try { pm.getApplicationIcon(info.packageName) } catch (e: Exception) { null },
-                    isSystemApp = (info.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                    apkPath = info.sourceDir ?: "",
+                    sizeBytes = try { java.io.File(info.sourceDir).length() } catch (e: Exception) { 0L },
+                    installDate = pkgInfo?.firstInstallTime ?: 0L
                 )
             }
             .sortedBy { it.appName }
