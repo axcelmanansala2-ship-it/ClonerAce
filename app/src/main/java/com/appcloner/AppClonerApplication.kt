@@ -14,10 +14,9 @@ class AppClonerApplication : Application() {
 
     private fun initVirtualEngine() {
         try {
-            // Must run on main thread; initialises VirtualApp2022's binder hooks
             VirtualCore.get().startup(this)
         } catch (e: Throwable) {
-            // Falls back to legacy APK-install mode if engine fails
+            // Stub startup — no-op until real VirtualApp AAR is linked
         }
     }
 }

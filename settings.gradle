@@ -7,7 +7,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         google()
         mavenCentral()
@@ -17,5 +17,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "ClonerAce"
 include ':app'
-include ':virtualapp-lib'
-project(':virtualapp-lib').projectDir = new File('virtualapp/lib')

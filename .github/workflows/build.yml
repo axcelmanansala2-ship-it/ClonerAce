@@ -30,14 +30,8 @@ jobs:
           unzip -q /tmp/gradle.zip -d /opt/
           echo "/opt/gradle-8.9/bin" >> $GITHUB_PATH
 
-      - name: Clone VirtualApp2022 Engine
-        run: |
-          git clone -b va --depth=1 https://github.com/bbajie/VirtualApp2022.git virtualapp
-          sed -i 's/ package="com.lody.virtual"//' virtualapp/lib/src/main/AndroidManifest.xml
-          cp scripts/virtualapp-lib-build.gradle virtualapp/lib/build.gradle
-
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
