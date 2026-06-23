@@ -1,38 +1,30 @@
 package com.appcloner.service
 
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
 import android.content.Context
-import com.appcloner.admin.DeviceAdminReceiver
+import com.appcloner.utils.Logger
+import com.lody.virtual.client.core.VirtualCore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Thin facade over VirtualApp2022's VirtualCore engine.
+ * All cloning is handled inside VirtualCore's isolated virtual space;
+ * no APK rewrite or separate package installation is required.
+ */
 @Singleton
 class VirtualSpaceManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val rootCommandExecutor: RootCommandExecutor
+    @ApplicationContext private val context: Context
 ) {
-    private val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-    private val adminComponent = ComponentName(context, DeviceAdminReceiver::class.java)
+    val isEngineReady: Boolean
+        get() = try { VirtualCore.get().isStartUp } catch (e: Throwable) { false }
 
-    fun createVirtualSpace(rootMode: Boolean): Int {
-        return if (rootMode && rootCommandExecutor.isRootAvailable()) {
-            createRootVirtualSpace()
-        } else {
-            createWorkProfileVirtualSpace()
-        }
-    }
+    fun isAppInstalledVirtually(packageName: String): Boolean =
+        try { VirtualCore.get().isAppInstalled(packageName) } catch (e: Throwable) { false }
 
-    private fun createRootVirtualSpace(): Int {
-        rootCommandExecutor.execute("pm create-user --managed ClonerAce_Space")
-        return 0
-    }
+    fun isAppRunning(packageName: String, userId: Int): Boolean =
+        try { VirtualCore.get().isAppRunning(packageName, userId) } catch (e: Throwable) { false }
 
-    private fun createWorkProfileVirtualSpace(): Int {
-        return 0
-    }
-
-    fun isDeviceAdminActive(): Boolean =
-        dpm.isAdminActive(adminComponent)
+    fun clearAppData(packageName: String, userId: Int): Boolean =
+        try { VirtualCore.get().clearPackageAsUser(userId, packageName) } catch (e: Throwable) { false }
 }

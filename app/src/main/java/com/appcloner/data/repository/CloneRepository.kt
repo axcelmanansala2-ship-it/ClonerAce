@@ -1,24 +1,31 @@
 package com.appcloner.data.repository
 
-import androidx.lifecycle.LiveData
 import com.appcloner.data.database.ClonedAppDao
 import com.appcloner.data.model.ClonedApp
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CloneRepository @Inject constructor(private val dao: ClonedAppDao) {
+class CloneRepository @Inject constructor(
+    private val clonedAppDao: ClonedAppDao
+) {
+    fun getAllClonedApps(): Flow<List<ClonedApp>> = clonedAppDao.getAllClonedApps()
 
-    fun getAllClonedApps(): LiveData<List<ClonedApp>> = dao.getAllClonedApps()
+    suspend fun getClonedApp(cloneId: String): ClonedApp? = clonedAppDao.getClonedApp(cloneId)
 
-    suspend fun addClonedApp(clonedApp: ClonedApp) = dao.insert(clonedApp)
+    suspend fun addClonedApp(clonedApp: ClonedApp) = clonedAppDao.insertClonedApp(clonedApp)
 
-    suspend fun removeClonedApp(clonedApp: ClonedApp) = dao.delete(clonedApp)
+    suspend fun removeClonedApp(clonedApp: ClonedApp) = clonedAppDao.deleteClonedApp(clonedApp)
 
-    suspend fun removeClonedAppById(cloneId: String) = dao.deleteById(cloneId)
+    suspend fun updateClonedApp(clonedApp: ClonedApp) = clonedAppDao.updateClonedApp(clonedApp)
 
-    suspend fun isCloned(packageName: String): Boolean = dao.isCloned(packageName)
-
-    suspend fun getClonesForPackage(packageName: String): List<ClonedApp> =
-        dao.getClonesByOriginalPackage(packageName)
+    /** Returns the next free virtual-user slot for a given package (supports multiple clones). */
+    suspend fun getNextUserSlot(packageName: String): Int {
+        val existing = clonedAppDao.getClonedAppsByOriginalPackage(packageName)
+        val used = existing.map { it.userHandle }.toSet()
+        var slot = 0
+        while (used.contains(slot)) slot++
+        return slot
+    }
 }

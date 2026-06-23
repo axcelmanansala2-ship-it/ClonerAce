@@ -1,14 +1,12 @@
 package com.appcloner.domain.usecase
 
 import android.content.Context
-import android.content.pm.PackageManager
-import com.appcloner.data.model.ClonedApp
 import com.appcloner.data.model.CloneStatus
+import com.appcloner.data.model.ClonedApp
 import com.appcloner.data.repository.CloneRepository
-import com.appcloner.service.ApkModifier
-import com.appcloner.service.ApkSigner
-import com.appcloner.service.RootCommandExecutor
 import com.appcloner.utils.Logger
+import com.lody.virtual.client.core.InstallStrategy
+import com.lody.virtual.client.core.VirtualCore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -19,50 +17,50 @@ import javax.inject.Inject
 
 class CloneAppUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val cloneRepository: CloneRepository,
-    private val apkModifier: ApkModifier,
-    private val apkSigner: ApkSigner,
-    private val rootCommandExecutor: RootCommandExecutor
+    private val cloneRepository: CloneRepository
 ) {
     operator fun invoke(packageName: String, cloneName: String): Flow<CloneStatus> = flow {
         try {
-            emit(CloneStatus.Progress("Extracting APK...", 10))
+            emit(CloneStatus.Progress("Preparing virtual space...", 10))
+
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(packageName, 0)
-            val apkFile = java.io.File(appInfo.sourceDir)
+            val apkPath = appInfo.sourceDir
+            val appLabel = pm.getApplicationLabel(appInfo).toString()
+
+            emit(CloneStatus.Progress("Installing into virtual space...", 40))
+
+            // Install APK into VirtualApp2022 virtual engine (no user-facing install dialog)
+            val result = VirtualCore.get().installPackage(apkPath, InstallStrategy.UPDATE_IF_EXIST)
+            if (!result.isSuccess) {
+                throw Exception("Virtual install failed: " + result.error)
+            }
+
+            emit(CloneStatus.Progress("Assigning virtual user slot...", 70))
+
+            // Get next free slot so multiple clones of the same app can coexist
+            val userSlot = cloneRepository.getNextUserSlot(packageName)
+            VirtualCore.get().installPackageAsUser(userSlot, packageName)
 
             val cloneId = UUID.randomUUID().toString()
-            val clonedPackage = "${packageName}.clone${System.currentTimeMillis()}"
-
-            emit(CloneStatus.Progress("Modifying package...", 30))
-            val modifiedApk = apkModifier.modifyPackageName(apkFile, clonedPackage, cloneId)
-                ?: throw Exception("Failed to modify APK")
-
-            emit(CloneStatus.Progress("Signing APK...", 60))
-            val signedApk = apkSigner.signApk(modifiedApk, cloneId)
-                ?: throw Exception("Failed to sign APK")
-
-            emit(CloneStatus.Progress("Installing clone...", 80))
-            apkSigner.installApk(signedApk)
-
-            val appName = pm.getApplicationLabel(appInfo).toString()
             val clonedApp = ClonedApp(
-                cloneId = cloneId,
+                cloneId    = cloneId,
                 originalPackage = packageName,
-                clonedPackage = clonedPackage,
-                userHandle = 0,
-                appName = cloneName.ifEmpty { "$appName Clone" },
-                iconPath = null,
+                clonedPackage   = packageName,   // same package name, isolated by virtual user
+                userHandle = userSlot,
+                appName    = cloneName.ifEmpty { "$appLabel Clone" },
+                iconPath   = null,
                 installDate = System.currentTimeMillis(),
-                isActive = true,
+                isActive   = true,
                 isGameGuardianPatched = false
             )
             cloneRepository.addClonedApp(clonedApp)
 
             emit(CloneStatus.Progress("Done!", 100))
             emit(CloneStatus.Success(clonedApp))
+
         } catch (e: Exception) {
-            Logger.e("CloneAppUseCase", "Clone failed", e)
+            Logger.e("CloneAppUseCase", "Virtual clone failed", e)
             emit(CloneStatus.Error(e.message ?: "Unknown error"))
         }
     }.flowOn(Dispatchers.IO)

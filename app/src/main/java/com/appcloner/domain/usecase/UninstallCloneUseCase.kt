@@ -1,27 +1,25 @@
 package com.appcloner.domain.usecase
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import com.appcloner.data.model.ClonedApp
 import com.appcloner.data.repository.CloneRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.appcloner.utils.Logger
+import com.lody.virtual.client.core.VirtualCore
 import javax.inject.Inject
 
 class UninstallCloneUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val cloneRepository: CloneRepository
 ) {
     suspend fun invoke(clonedApp: ClonedApp): Boolean {
         return try {
+            VirtualCore.get().uninstallPackageAsUser(
+                clonedApp.originalPackage,
+                clonedApp.userHandle
+            )
             cloneRepository.removeClonedApp(clonedApp)
-            val intent = Intent(Intent.ACTION_DELETE).apply {
-                data = Uri.parse("package:${clonedApp.clonedPackage}")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
             true
         } catch (e: Exception) {
+            Logger.e("UninstallClone", "Uninstall failed", e)
+            cloneRepository.removeClonedApp(clonedApp)
             false
         }
     }
