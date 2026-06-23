@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="@dimen/card_radius">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iv_app_icon"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <TextView
+            android:id="@+id/tv_app_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_title"
+            android:textStyle="bold"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iv_app_icon"
+            app:layout_constraintEnd_toStartOf="@id/btn_clone"/>
+
+        <TextView
+            android:id="@+id/tv_package_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_caption"
+            android:alpha="0.6"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_app_name"
+            app:layout_constraintStart_toEndOf="@id/iv_app_icon"
+            app:layout_constraintEnd_toStartOf="@id/btn_clone"/>
+
+        <TextView
+            android:id="@+id/tv_app_size"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_caption"
+            android:alpha="0.5"
+            android:layout_marginStart="12dp"
+            app:layout_constraintTop_toBottomOf="@id/tv_package_name"
+            app:layout_constraintStart_toEndOf="@id/iv_app_icon"
+            app:layout_constraintEnd_toStartOf="@id/btn_clone"/>
+
+        <ImageView
+            android:id="@+id/iv_cloned_badge"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@android:drawable/ic_menu_rotate"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btn_clone"
+            android:layout_marginEnd="4dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_clone"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

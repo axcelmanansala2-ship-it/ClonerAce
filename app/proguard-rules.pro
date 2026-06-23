@@ -1,0 +1,3 @@
+-keep class com.appcloner.** { *; }
+-keepattributes *Annotation*
+-dontwarn java.lang.invoke.*
