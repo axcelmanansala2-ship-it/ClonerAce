@@ -20,6 +20,9 @@ class CloneRepository @Inject constructor(
 
     suspend fun updateClonedApp(clonedApp: ClonedApp) = clonedAppDao.updateClonedApp(clonedApp)
 
+    suspend fun isCloned(packageName: String): Boolean =
+        clonedAppDao.getClonedAppsByOriginalPackage(packageName).isNotEmpty()
+
     /** Returns the next free virtual-user slot for a given package (supports multiple clones). */
     suspend fun getNextUserSlot(packageName: String): Int {
         val existing = clonedAppDao.getClonedAppsByOriginalPackage(packageName)
